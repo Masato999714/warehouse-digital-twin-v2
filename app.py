@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 import streamlit as st
 
 # 日本語フォント設定（グラフ内の文字化け対策）
-matplotlib.rcParams["font.family"] = ["Meiryo", "Yu Gothic", "MS Gothic", "DejaVu Sans"]
+matplotlib.rcParams["font.family"] = ["Noto Sans CJK JP", "IPAexGothic", "Meiryo", "Yu Gothic", "MS Gothic", "DejaVu Sans"]
 matplotlib.rcParams["axes.unicode_minus"] = False
 
 from warehouse_sim import run_simulation, STAGE_NAMES
