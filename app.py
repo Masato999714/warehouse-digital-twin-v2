@@ -38,22 +38,38 @@ labor_cost = st.sidebar.number_input("人件費（円/人時）", value=2500, st
 days_per_year = st.sidebar.number_input("年間稼働日数（日）", min_value=1, max_value=366, value=250, step=1)
 
 # --- メイン画面：工程別設定 ---
-st.header("工程別 容量・導入機器・投資額の設定")
-st.caption("各工程の容量（人・台数）と導入機器を選択してください。投資額は機器マスタの参考値が自動入力されますが、実際の見積金額に書き換えられます。")
+st.header("工程別 容量・処理時間・導入機器・投資額の設定")
+st.caption(
+    "各工程の容量（人・台数）、1件あたりの基準処理時間、導入機器を設定してください。"
+    "基準処理時間は「人手（現状）」の場合の目安であり、実際の現場感覚（実測値）に合わせて調整することを推奨します。"
+    "投資額は機器マスタの参考値が自動入力されますが、実際の見積金額に書き換えられます。"
+)
 
 stage_overrides = {}
 default_caps = {"入荷・荷役": 7, "保管": 6, "ピッキング": 8, "仕分け": 6, "梱包": 6, "搬送・出荷": 6}
+default_service_times = {
+    "入荷・荷役": 3.4, "保管": 2.6, "ピッキング": 3.6,
+    "仕分け": 2.8, "梱包": 3.0, "搬送・出荷": 2.6,
+}
 
 cols = st.columns(3)
 selected_equipment = {}
 capacities = {}
-capex_inputs = {}  # 万円単位
+service_times = {}   # 基準処理時間（分/件）を保持
+capex_inputs = {}     # 万円単位
 
 for i, name in enumerate(STAGE_NAMES):
     with cols[i % 3]:
         st.subheader(name)
         cap = st.number_input("容量（人・台）", min_value=1, max_value=200,
                                value=default_caps[name], key=f"cap_{name}")
+
+        base_service = st.number_input(
+            "基準処理時間（分/件）", min_value=0.1, max_value=60.0,
+            value=default_service_times[name], step=0.1, key=f"svc_{name}",
+            help="人手（現状）の場合、1件処理するのに平均何分かかるかの目安です。実際の現場感覚に合わせて調整してください。"
+        )
+
         options = [e["name"] for e in EQUIPMENT_MASTER[name]]
         choice = st.selectbox("導入機器", options, key=f"eq_{name}")
         eq_info = next(e for e in EQUIPMENT_MASTER[name] if e["name"] == choice)
@@ -71,10 +87,12 @@ for i, name in enumerate(STAGE_NAMES):
             st.write(f"投資額（機器マスタ参考値）: {eq_info['capex_oku']}億円")
 
         capacities[name] = cap
+        service_times[name] = base_service
         selected_equipment[name] = eq_info
         capex_inputs[name] = capex_man
         stage_overrides[name] = {
             "capacity": cap,
+            "base_service_min": base_service,
             "capacity_multiplier": eq_info["capacity_multiplier"],
             "service_cv": eq_info["service_cv"],
         }
@@ -88,6 +106,7 @@ if run_btn:
         base_eq = EQUIPMENT_MASTER[name][0]  # マスタの先頭 = 現状（人手）
         before_overrides[name] = {
             "capacity": capacities[name],
+            "base_service_min": service_times[name],
             "capacity_multiplier": base_eq["capacity_multiplier"],
             "service_cv": base_eq["service_cv"],
         }
@@ -204,6 +223,7 @@ if st.session_state.get("has_result", False):
         "※ ROIは「稼働率の低下分 × 工程容量」を浮いた人員相当とみなし、"
         "人件費レート・年間稼働時間から年間削減額を推定する簡易ロジックです。"
         "投資額は機器マスタの参考値を初期値としていますが、実際の見積金額に書き換えて計算してください。"
+        "基準処理時間も実際の現場感覚に合わせて調整することで、より精度の高い検証ができます。"
         "実際の投資判断には現場データでのキャリブレーションが必要です。"
     )
 else:
