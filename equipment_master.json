@@ -1,0 +1,41 @@
+{
+  "入荷・荷役": [
+    {"name": "人手（現状）", "capacity_multiplier": 1.0, "service_cv": 0.40, "capex_oku": 0.0, "note": "ベースライン。フォークリフト・人手による荷役。"},
+    {"name": "デバンニングロボット", "capacity_multiplier": 1.6, "service_cv": 0.25, "capex_oku": 1.5, "note": "入荷工程で最も重筋な作業を代替可能。定型ケースに適し、袋物・軟包装・不定形品や乱れた積付では難易度が上がる。"},
+    {"name": "パレタイザ/デパレタイザ", "capacity_multiplier": 1.8, "service_cv": 0.20, "capex_oku": 1.8, "note": "重量物の反復作業に強い。荷姿が変わるとハンド交換や設定変更が必要。"},
+    {"name": "AGF（無人フォークリフト）", "capacity_multiplier": 1.3, "service_cv": 0.15, "capex_oku": 0.8, "note": "資格者不足を直接解消可能。有人フォークと混在時は速度低下。"},
+    {"name": "バンニング/デバンニング支援", "capacity_multiplier": 1.4, "service_cv": 0.28, "capex_oku": 0.6, "note": "作業支援型から自動積込・荷降ろしまで方式は様々。"}
+  ],
+  "保管": [
+    {"name": "固定ラック（現状）", "capacity_multiplier": 1.0, "service_cv": 0.35, "capex_oku": 0.0, "note": "ベースライン。保管効率は通路幅で決まる。"},
+    {"name": "移動ラック", "capacity_multiplier": 1.15, "service_cv": 0.30, "capex_oku": 0.9, "note": "通路集約で保管量増。複数箇所同時アクセス不可。"},
+    {"name": "自動倉庫（AS/RS）", "capacity_multiplier": 1.7, "service_cv": 0.15, "capex_oku": 3.0, "note": "保管効率と在庫精度は高い。ピーク時にボトルネックの可能性。"},
+    {"name": "パレットシャトル", "capacity_multiplier": 1.5, "service_cv": 0.18, "capex_oku": 2.2, "note": "高密度保管可能。SKU数が多い運用には不向き。"},
+    {"name": "高密度GTP（Cube型/ACR型）", "capacity_multiplier": 2.0, "service_cv": 0.12, "capex_oku": 3.5, "note": "多品種小ロットに適する。過剰投資リスクに注意。"}
+  ],
+  "ピッキング": [
+    {"name": "徒歩ピッキング（現状）", "capacity_multiplier": 1.0, "service_cv": 0.40, "capex_oku": 0.0, "note": "ベースライン。歩行時間・習熟度差が大きい。"},
+    {"name": "ピッキングアシストAMR", "capacity_multiplier": 1.4, "service_cv": 0.20, "capex_oku": 1.2, "note": "小さく始められる。歩行はゼロにはならない。"},
+    {"name": "DPS（デジタルピッキング）", "capacity_multiplier": 1.3, "service_cv": 0.15, "capex_oku": 0.8, "note": "習熟度差を抑制。レイアウト変更時の再設定負荷。"},
+    {"name": "棚搬送ロボット（GTP方式）", "capacity_multiplier": 1.8, "service_cv": 0.12, "capex_oku": 2.5, "note": "作業者を定点化。大型品には使えない。"},
+    {"name": "ピースピッキングロボット", "capacity_multiplier": 1.5, "service_cv": 0.30, "capex_oku": 2.0, "note": "把持の失敗率が効果を左右。"}
+  ],
+  "仕分け": [
+    {"name": "人手仕分け（現状）", "capacity_multiplier": 1.0, "service_cv": 0.35, "capex_oku": 0.0, "note": "ベースライン。"},
+    {"name": "DAS（デジタル仕分け）/GAS", "capacity_multiplier": 1.25, "service_cv": 0.20, "capex_oku": 0.7, "note": "処理量の上限が人数で決まる。"},
+    {"name": "仕分けロボット（t-Sort等・立体型）", "capacity_multiplier": 1.6, "service_cv": 0.15, "capex_oku": 2.0, "note": "台数で拡張しやすい。荷姿・重量に制約。"},
+    {"name": "ソーター（クロスベルト式等）", "capacity_multiplier": 2.2, "service_cv": 0.10, "capex_oku": 4.0, "note": "大量・高速処理向け。設置面積と投資額大。"}
+  ],
+  "梱包": [
+    {"name": "手作業梱包（現状）", "capacity_multiplier": 1.0, "service_cv": 0.35, "capex_oku": 0.0, "note": "ベースライン。"},
+    {"name": "自動製函機/封函機", "capacity_multiplier": 1.5, "service_cv": 0.18, "capex_oku": 1.0, "note": "段ボール出荷前提。通い箱主体では不要。"},
+    {"name": "オートラベラ", "capacity_multiplier": 1.3, "service_cv": 0.15, "capex_oku": 0.5, "note": "貼り忘れ・貼り間違いを排除。"},
+    {"name": "DWS（寸法・重量・スキャン）", "capacity_multiplier": 1.2, "service_cv": 0.12, "capex_oku": 0.6, "note": "単独効果は限定的、データ活用とセットで価値。"}
+  ],
+  "搬送・出荷": [
+    {"name": "台車（現状）", "capacity_multiplier": 1.0, "service_cv": 0.35, "capex_oku": 0.0, "note": "ベースライン。人手依存が大きい。"},
+    {"name": "AGV（無人搬送車）", "capacity_multiplier": 1.4, "service_cv": 0.15, "capex_oku": 1.5, "note": "動作安定、AMRより低コスト。"},
+    {"name": "AMR（自律走行搬送ロボット）", "capacity_multiplier": 1.35, "service_cv": 0.18, "capex_oku": 1.6, "note": "床工事不要。乱雑な環境では効果減。"},
+    {"name": "AGF（無人フォークリフト）", "capacity_multiplier": 1.3, "service_cv": 0.15, "capex_oku": 1.0, "note": "資格者不足解消。有人混在時は速度低下。"}
+  ]
+}
