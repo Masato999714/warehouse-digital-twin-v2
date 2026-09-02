@@ -3,20 +3,25 @@ import itertools
 
 
 class Environment:
+    """SimPyのEnvironmentを軽量に再現した自作クラス。
+    SimPyがインストールされていない環境向けのフォールバックとして使用する。
+    """
+
     def __init__(self):
         self.now = 0.0
-        self._queue = []
+        self._event_queue = []
         self._counter = itertools.count()
 
     def schedule(self, delay, callback, *args):
         t = self.now + delay
-        heapq.heappush(self._queue, (t, next(self._counter), callback, args))
+        heapq.heappush(self._event_queue, (t, next(self._counter), callback, args))
 
     def timeout(self, delay):
         return ("timeout", delay)
 
     def process(self, gen):
         self._advance(gen, None)
+        return gen
 
     def _advance(self, gen, send_value):
         try:
@@ -27,53 +32,58 @@ class Environment:
         if kind == "timeout":
             self.schedule(event[1], self._advance, gen, "ok")
         elif kind == "request":
-            resource, priority = event[1], event[2]
-            resource._request(gen, self, priority)
-        elif kind == "release":
-            resource, token = event[1], event[2]
-            resource._release(token)
-            self._advance(gen, "ok")
+            resource = event[1]
+            resource._request(gen, self)
         else:
             raise ValueError(f"unknown event kind: {kind}")
 
     def run(self, until):
-        while self._queue and self._queue[0][0] <= until:
-            t, _, callback, args = heapq.heappop(self._queue)
+        while self._event_queue and self._event_queue[0][0] <= until:
+            t, _, callback, args = heapq.heappop(self._event_queue)
             self.now = t
             callback(*args)
         self.now = until
 
 
 class Resource:
+    """SimPyのResourceと同じ使い方ができる、簡易版リソースクラス。
+
+    使い方（SimPyと同一）:
+        req = resource.request()
+        yield req
+        ... 処理 ...
+        resource.release(req)
+    """
+
     def __init__(self, env, capacity):
         self.env = env
         self.capacity = capacity
-        self.in_use = 0
-        self._waiting = []
-        self._token_counter = itertools.count()
+        self.count = 0     # 使用中の数（SimPy互換の属性名）
+        self.queue = []    # 順番待ちのプロセス一覧（SimPy互換の属性名）
 
     def request(self):
-        return ("request", self, 0)
+        return ("request", self)
 
-    def release(self, token):
-        return ("release", self, token)
+    def release(self, req=None):
+        # SimPyと同じく、release()は同期的に即時実行される（yield不要）
+        if self.count > 0:
+            self.count -= 1
+        if self.queue and self.count < self.capacity:
+            next_gen = self.queue.pop(0)
+            self.count += 1
+            self.env._advance(next_gen, "ok")
 
-    def _request(self, gen, env, priority):
-        if self.in_use < self.capacity:
-            self.in_use += 1
-            token = next(self._token_counter)
-            env._advance(gen, token)
+    def _request(self, gen, env):
+        if self.count < self.capacity:
+            self.count += 1
+            env._advance(gen, "ok")
         else:
-            self._waiting.append(gen)
+            self.queue.append(gen)
 
-    def _release(self, token):
-        self.in_use -= 1
-        if self._waiting and self.in_use < self.capacity:
-            next_gen = self._waiting.pop(0)
-            self.in_use += 1
-            token = next(self._token_counter)
-            self.env._advance(next_gen, token)
+    @property
+    def in_use(self):
+        return self.count
 
     @property
     def queue_len(self):
-        return len(self._waiting)
+        return len(self.queue)
