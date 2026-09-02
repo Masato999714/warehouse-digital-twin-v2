@@ -55,8 +55,8 @@ default_service_times = {
 cols = st.columns(3)
 selected_equipment = {}
 capacities = {}
-service_times = {}   # 基準処理時間（分/件）を保持
-capex_inputs = {}     # 万円単位
+service_times = {}
+capex_inputs = {}
 
 for i, name in enumerate(STAGE_NAMES):
     with cols[i % 3]:
@@ -74,7 +74,7 @@ for i, name in enumerate(STAGE_NAMES):
         choice = st.selectbox("導入機器", options, key=f"eq_{name}")
         eq_info = next(e for e in EQUIPMENT_MASTER[name] if e["name"] == choice)
 
-        default_capex_man = eq_info["capex_oku"] * 10000  # 億円 -> 万円
+        default_capex_man = eq_info["capex_oku"] * 10000
         capex_man = st.number_input(
             "投資額（万円）", min_value=0, max_value=1000000,
             value=int(default_capex_man), step=100, key=f"capex_{name}",
@@ -99,11 +99,10 @@ for i, name in enumerate(STAGE_NAMES):
 
 run_btn = st.button("シミュレーション実行", type="primary")
 
-# --- ボタンが押されたら、計算結果を session_state に保存する ---
 if run_btn:
     before_overrides = {}
     for name in STAGE_NAMES:
-        base_eq = EQUIPMENT_MASTER[name][0]  # マスタの先頭 = 現状（人手）
+        base_eq = EQUIPMENT_MASTER[name][0]
         before_overrides[name] = {
             "capacity": capacities[name],
             "base_service_min": service_times[name],
@@ -120,7 +119,6 @@ if run_btn:
         wave_amplitude=wave_amp, seed=seed, stage_overrides=stage_overrides,
     )
 
-    # 結果一式をセッションに保存（これ以降、ページ再実行しても消えない）
     st.session_state["res_before"] = res_before
     st.session_state["res_after"] = res_after
     st.session_state["selected_equipment"] = selected_equipment
@@ -130,7 +128,6 @@ if run_btn:
     st.session_state["days_per_year"] = days_per_year
     st.session_state["has_result"] = True
 
-# --- 保存された結果があれば、常に表示する（ボタンを押した直後でなくても表示） ---
 if st.session_state.get("has_result", False):
     res_before = st.session_state["res_before"]
     res_after = st.session_state["res_after"]
@@ -184,29 +181,28 @@ if st.session_state.get("has_result", False):
         st.success("導入後、稼働率80%以上の工程はありません。")
 
     st.header("結果：工程別 WIP 時系列（Before/After）")
-       fig, axes = plt.subplots(2, 3, figsize=(16, 10))
+    fig, axes = plt.subplots(2, 3, figsize=(16, 10))
     for i, name in enumerate(STAGE_NAMES):
         ax = axes[i // 3][i % 3]
         tb = res_before["stage_summary"][name]["timeseries"]
         ta = res_after["stage_summary"][name]["timeseries"]
         ax.plot(tb["t"], tb["wip"], label="Before", alpha=0.7)
         ax.plot(ta["t"], ta["wip"], label="After", alpha=0.7)
-        ax.set_title(name, fontsize=12, pad=12)          # ← タイトルの下に余白を追加
-        ax.set_xlabel("時間(分)", fontsize=10, labelpad=8) # ← 軸ラベルの上に余白を追加
+        ax.set_title(name, fontsize=12, pad=12)
+        ax.set_xlabel("時間(分)", fontsize=10, labelpad=8)
         ax.set_ylabel("WIP", fontsize=10)
         ax.legend(fontsize=8)
         ax.tick_params(axis="both", labelsize=8)
 
-    # tight_layoutではなく、段の間隔(hspace)を明示的に広げる
     plt.subplots_adjust(hspace=0.55, wspace=0.3, top=0.93, bottom=0.08)
     st.pyplot(fig)
-    plt.close(fig)   # ← 描画後にfigureを解放（メモリ蓄積の防止）
+    plt.close(fig)
 
     st.header("簡易ROI推定")
     roi_stage = st.selectbox("ROI算出対象工程", STAGE_NAMES, key="roi_stage")
     eq = selected_equipment[roi_stage]
     capex_man = capex_inputs[roi_stage]
-    capex_yen = capex_man * 10000  # 万円 -> 円
+    capex_yen = capex_man * 10000
 
     roi = estimate_roi(
         capex_yen, roi_stage, res_before, res_after,
