@@ -184,19 +184,23 @@ if st.session_state.get("has_result", False):
         st.success("導入後、稼働率80%以上の工程はありません。")
 
     st.header("結果：工程別 WIP 時系列（Before/After）")
-    fig, axes = plt.subplots(2, 3, figsize=(16, 8))
+       fig, axes = plt.subplots(2, 3, figsize=(16, 10))
     for i, name in enumerate(STAGE_NAMES):
         ax = axes[i // 3][i % 3]
         tb = res_before["stage_summary"][name]["timeseries"]
         ta = res_after["stage_summary"][name]["timeseries"]
         ax.plot(tb["t"], tb["wip"], label="Before", alpha=0.7)
         ax.plot(ta["t"], ta["wip"], label="After", alpha=0.7)
-        ax.set_title(name)
-        ax.set_xlabel("時間(分)")
-        ax.set_ylabel("WIP")
+        ax.set_title(name, fontsize=12, pad=12)          # ← タイトルの下に余白を追加
+        ax.set_xlabel("時間(分)", fontsize=10, labelpad=8) # ← 軸ラベルの上に余白を追加
+        ax.set_ylabel("WIP", fontsize=10)
         ax.legend(fontsize=8)
-    plt.tight_layout()
+        ax.tick_params(axis="both", labelsize=8)
+
+    # tight_layoutではなく、段の間隔(hspace)を明示的に広げる
+    plt.subplots_adjust(hspace=0.55, wspace=0.3, top=0.93, bottom=0.08)
     st.pyplot(fig)
+    plt.close(fig)   # ← 描画後にfigureを解放（メモリ蓄積の防止）
 
     st.header("簡易ROI推定")
     roi_stage = st.selectbox("ROI算出対象工程", STAGE_NAMES, key="roi_stage")
